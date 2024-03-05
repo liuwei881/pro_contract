@@ -1,2 +1,2 @@
 # pro_contract
-pro_contract
+flask开放的一个关于项目合同费用添加的小项目
