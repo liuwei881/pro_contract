@@ -1,0 +1,291 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="portlet box blue">
+    <div class="portlet-title">
+        <div class="caption">
+            <i class="fa fa-cogs"></i>合同管理
+        </div>
+        <div class="">
+            <div>
+            <form action="/search_contract/" method="POST" class="navbar-form navbar-left" role="search">
+                <div class="form-group">
+                    <div class="col-sm-2">
+                        <input type="text" name="searchKey" class="form-control" id="searchKey" placeholder="合同名称">
+                    </div>
+                </div>
+                    <button type="submit" class="btn red-haze btn-sm">搜索</button>
+            </form>
+        </div>
+        </div>
+        <div class="tools">
+        <button type="button" class="btn red-haze btn-sm dropdown-toggle" data-toggle="modal" data-target="#myModal-up" data-close-others="true" >批量上传合同</button>
+        </div>
+        <div class="tools">
+        <button type="button" class="btn red-haze btn-sm dropdown-toggle" data-toggle="modal" data-target="#myModal-add" data-close-others="true" >新建合同</button>
+        </div>
+    </div>
+	<div class="portlet-body">
+        <table class="table table-bordered">
+            <tbody>
+            <tr>
+                <th>项目名称</th>
+                <th>合同名称</th>
+                <th>资金渠道</th>
+                <th>合同值</th>
+                <th>已支付</th>
+                <th>已申请未支付</th>
+                <th>支付时间</th>
+                <th>结算值</th>
+                <th>乙方单位</th>
+            </tr>
+            {% for i in list%}
+            <tr>
+                <td>{{i[1]}}</td>
+                <td>{{i[2]}}</td>
+                <td>{{i[3]}}</td>
+                <td>{{i[4]}}</td>
+                <td>{{i[5]}}</td>
+                <td>{{i[6]}}
+                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal-pay-{{i[0]}}" data-close-others="true">支付</button>
+                    <div class="modal fade" id="myModal-pay-{{i[0]}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <form class="form-horizontal" method="post" action="/pay/{{i[0]}}/" id="userForm-pay">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h4 class="modal-title" id="myModalLabel-pay">
+                                            确定支付{{i[6]}}元?
+                                        </h4>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                        <button type="submit" class="btn btn-primary">确定</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </td>
+                <td>{{i[7]}}</td>
+                <td>{{i[8]}}</td>
+                <td>{{i[9]}}</td>
+                <td>
+                <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal-edit-{{i[0]}}" data-close-others="true">编辑</button>
+                    <div class="modal fade" id="myModal-edit-{{i[0]}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <form class="form-horizontal" method="post" action="/edit_contract/{{i[0]}}/" id="userForm-edit">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h4 class="modal-title" id="myModalLabel-edit">
+                                            编辑合同
+                                        </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label for="name" class="col-sm-2 control-label">合同名称</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[2]}}" name="name" class="form-control" id="name" placeholder="{{i[2]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="capital_channel" class="col-sm-2 control-label">资金渠道</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[3]}}" name="capital_channel" class="form-control" id="capital_channel" placeholder="{{i[3]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="contract_values" class="col-sm-2 control-label">合同值</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[4]}}" name="contract_values" class="form-control" id="contract_values" placeholder="{{i[4]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="payment" class="col-sm-2 control-label">已支付</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[5]}}" name="payment" class="form-control" id="payment" placeholder="{{i[5]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="allow_nopay" class="col-sm-2 control-label">已申请未支付</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[6]}}" name="allow_nopay" class="form-control" id="allow_nopay" placeholder="{{i[6]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pay_time" class="col-sm-2 control-label">支付时间</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[7]}}" name="pay_time" class="form-control" id="pay_time" placeholder="{{i[7]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="final_value" class="col-sm-2 control-label">结算值</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[8]}}" name="final_value" class="form-control" id="final_value" placeholder="{{i[8]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="party_unit" class="col-sm-2 control-label">乙方单位</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[9]}}" name="party_unit" class="form-control" id="party_unit" placeholder="{{i[9]}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                        <button type="submit" class="btn btn-primary">确定</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {%endfor%}
+            </tbody>
+        </table>
+    </div>
+</div>
+    <div class="modal fade" id="myModal-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <form class="form-horizontal" method="post" action="/contract/" id="userForm">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h4 class="modal-title" id="myModalLabel-add">
+                               新增合同
+                            </h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="name" class="col-sm-2 control-label">合同名称</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="name" class="form-control" id="name" required placeholder="合同名称">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="capital_channel" class="col-sm-2 control-label">资金渠道</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="capital_channel" class="form-control" id="capital_channel" required placeholder="资金渠道">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="contract_values" class="col-sm-2 control-label">合同值</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="contract_values" class="form-control" id="contract_values" required placeholder="合同值">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment" class="col-sm-2 control-label">已支付</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="payment" class="form-control" id="payment" required placeholder="已支付">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="allow_nopay" class="col-sm-2 control-label">已申请未支付</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="allow_nopay" class="form-control" id="allow_nopay" required placeholder="已申请未支付">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pay_time" class="col-sm-2 control-label">支付时间</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="pay_time" class="form-control" id="pay_time" required placeholder="支付时间">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="final_value" class="col-sm-2 control-label">结算值</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="final_value" class="form-control" id="final_value" required placeholder="结算值">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="party_unit" class="col-sm-2 control-label">乙方单位</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="party_unit" class="form-control" id="party_unit" required placeholder="乙方单位">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pro_name" class="col-sm-2 control-label">项目名称</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="pro_name" class="form-control" id="pro_name" required placeholder="项目名称">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+<!--                        <a href="javascript:void(0);" onclick="sendReq('/project/',{'pro_name':$('#pro_name').val(),'c_project':$('#qc_project').val(),'research':$('#qresearch').val(),'start':$('#qstart').val(),'comment':$('#qcomment').val()},'post')"><button type="button" class="btn btn-primary">确定</button>-->
+<!--                            </a>-->
+                        <a href="/contract/" onclick="sendReq('/contract/',{'name':$('#name').val(),
+                        'capital_channel':$('#capital_channel').val(),
+                        'contract_values':$('#contract_values').val(),
+                        'payment':$('#payment').val(),
+                        'allow_nopay':$('#allow_nopay').val(),
+                        'pay_time':$('#pay_time').val(),
+                        'final_value':$('#final_value').val(),
+                        'party_unit':$('#party_unit').val(),
+                        'pro_name':$('#pro_name').val()},'post')"><button type="button" class="btn btn-primary">确定</button>
+                            </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal fade" id="myModal-up" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <form class="form-horizontal" enctype=multipart/form-data method="post" action="/upload_contract/" id="userFormup">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h4 class="modal-title" id="myModalLabel-up">
+                               批量上传合同
+                            </h4>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" id="file" name="file">
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="portlet-body">
+        <table class="table table-bordered">
+            <tbody>
+            <tr>
+                <th>合同总值</th>
+            </tr>
+            <tr>
+                {% for i in count%}
+                <td>{{i[0]}}</td>
+                {%endfor%}
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+    <div class="portlet-body">
+        <table class="table table-bordered">
+            <tbody>
+            <div class="caption">
+            <i class="fa fa-cogs"></i>其中
+        </div>
+            <tr>
+                {% for i in depart%}
+                <th>{{i[0]}}</th>
+                {%endfor%}
+            </tr>
+            <tr>
+                {% for i in depart%}
+                <td>{{i[1]}}</td>
+                {%endfor%}
+            </tr>
+            </tbody>
+        </table>
+    </div>
+{%endblock%}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<!--[if !IE]><!-->
+<html lang="en" class="no-js">
+<!--<![endif]-->
+<head>
+<meta charset="utf-8"/>
+<title>项目管理</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="/static/global/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+<link href="/static/global/plugins/simple-line-icons/simple-line-icons.min.css" rel="stylesheet" type="text/css"/>
+<link href="/static/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="/static/global/plugins/uniform/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+<link href="/static/global/css/components-rounded.css" id="style_components" rel="stylesheet" type="text/css"/>
+<link href="/static/admin/layout4/css/layout.css" rel="stylesheet" type="text/css"/>
+<link href="/static/admin/layout4/css/themes/light.css" rel="stylesheet" type="text/css" id="style_color"/>
+<link href="/static/global/css/base.css" rel="stylesheet" type="text/css"/>
+<link href="/static/global/css/checkcode.css" rel="stylesheet" type="text/css"/>
+<link rel="shortcut icon" href="favicon.ico"/>
+</head>
+
+<body class="page-header-fixed page-sidebar-closed-hide-logo page-sidebar-fixed page-footer-fixed">
+<div class="page-header navbar navbar-fixed-top">
+	<div class="page-header-inner">
+		<div class="page-logo">
+			<div class="menu-toggler sidebar-toggler">
+			</div>
+		</div>
+		<a href="javascript:;" class="menu-toggler responsive-toggler" data-toggle="collapse" data-target=".navbar-collapse">
+		</a>
+		<div class="page-top">
+			<div class="top-menu">
+				<ul class="nav navbar-nav pull-right">
+					<li class="separator hide">
+					</li>
+					<li class="separator hide">
+					</li>
+					<li class="dropdown dropdown-user dropdown-dark">
+
+						<ul class="dropdown-menu dropdown-menu-default">
+							<li>
+								<a href="extra_profile.html">
+								<i class="icon-user"></i> My Profile </a>
+							</li>
+							<li>
+								<a href="page_calendar.html">
+								<i class="icon-calendar"></i> My Calendar </a>
+							</li>
+							<li class="divider">
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix">
+</div>
+<div class="page-container">
+	<div class="page-sidebar-wrapper">
+		<div class="page-sidebar navbar-collapse collapse">
+			<ul class="page-sidebar-menu " data-keep-expanded="false" data-auto-scroll="true" data-slide-speed="200">
+				<li>
+					<a href="/project/">
+					<i class="icon-basket"></i>
+					<span class="title">项目管理</span>
+					</a>
+				<li>
+				<a href="/contract/">
+					<i class="icon-basket"></i>
+					<span class="badge badge-warning"></span>合同管理</a>
+				</li>
+					<li>
+					<a href="/capital/">
+						<i class="icon-basket"></i>
+						<span class="badge badge-warning"></span>资金管理</a>
+					</li>
+			</ul>
+		</div>
+	</div>
+	<div class="page-content-wrapper">
+
+		<div class="page-content-wrapper">
+		<div class="page-content">
+
+					   {% block content %}
+                  {% endblock %}
+                  {% block page %}
+                  {% endblock %}
+                  {% block footer %}
+                  {% endblock%}
+						   <div class="row">
+					<div class="col-md-5 col-sm-12">
+						<div class="dataTables_info" id="sample_2_info" role="status"
+							aria-live="polite">Total:test</div>
+					</div>
+					<div class="col-md-7 col-sm-12">
+						<div class="dataTables_paginate paging_simple_numbers"	id="sample_2_paginate">
+							<ul class="pagination">
+							</ul>
+						</div>
+					</div>
+				</div>
+		</div>
+	</div>
+
+	</div>
+</div>
+<div class="page-footer">
+
+	<div class="scroll-to-top">
+		<i class="icon-arrow-up"></i>
+	</div>
+</div>
+<div class="mainShowAjaxInfoBase" id="mainShowAjaxInfoBase">ABCDEF测试悬浮</div>
+<script src="/static/global/plugins/jquery.min.js" type="text/javascript"></script>
+<script src="/static/global/plugins/jquery-ui/jquery-ui.min.js" type="text/javascript"></script>
+<script src="/static/global/plugins/highcharts/highcharts.js" type="text/javascript"></script>
+<script src="/static/global/plugins/bootstrap.min.js" type="text/javascript"></script>
+<script src="/static/global/plugins/jquery.blockui.min.js" type="text/javascript"></script>
+<script src="/static/global/plugins/bootstrap-hover-dropdown.min.js" type="text/javascript"></script>
+<script src="/static/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript"></script>
+<script src="/static/global/plugins/jquery-validation/js/jquery.validate.min.js" type="text/javascript"></script>
+<script src="/static/global/scripts/metronic.js" type="text/javascript"></script>
+<script src="/static/admin/layout4/scripts/layout.js" type="text/javascript"></script>
+<script src="/static/global/scripts/base.js" type="text/javascript"></script>
+<script src="/static/global/scripts/checkcode.js" type="text/javascript"></script>
+<script>
+jQuery(document).ready(function() {
+   Metronic.init(); // init metronic core componets
+   Layout.init(); // init layout
+});
+</script>
+{% block appjs %}
+{% endblock %}
+ <paging
+                class="small"
+                page="currentPage"
+                page-size="pageSize"
+                total="total"
+                adjacent="{{adjacent}}"
+                dots="{{dots}}"
+                scroll-top="{{scrollTop}}"
+                hide-if-empty="{{hideIfEmpty}}"
+                ul-class="{{ulClass}}"
+                active-class="{{activeClass}}"
+                disabled-class="{{disabledClass}}"
+                show-prev-next="{{showPrevNext}}"
+                paging-action="pageAction( page )">
+        </paging>
+</body>
+</html>

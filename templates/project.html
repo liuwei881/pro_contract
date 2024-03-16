@@ -1,9 +1,173 @@
-{% extends 'base.html' %}
-
-{% block header %}
-  <h1>{% block title %}Log In{% endblock %}</h1>
-{% endblock %}
-
+{% extends "main.html" %}
 {% block content %}
-  1111111111
+<div class="portlet box blue">
+    <div class="portlet-title">
+        <div class="caption">
+            <i class="fa fa-cogs"></i>项目管理
+        </div>
+        <div class="">
+            <div>
+            <form action="/search_project/" method="POST" class="navbar-form navbar-left" role="search">
+                <div class="form-group">
+                    <div class="col-sm-2">
+                        <input type="text" name="searchKey" class="form-control" id="searchKey" placeholder="项目名称">
+                    </div>
+                </div>
+                    <button type="submit" class="btn red-haze btn-sm">搜索</button>
+            </form>
+        </div>
+        </div>
+        <div class="tools">
+        <button type="button" class="btn red-haze btn-sm dropdown-toggle" data-toggle="modal" data-target="#myModal-add" data-close-others="true" >新建项目</button>
+        </div>
+    </div>
+	<div class="portlet-body">
+        <table class="table table-bordered">
+            <tbody>
+            <tr>
+                <th>项目名称</th>
+                <th>立项资金</th>
+                <th>可研资金</th>
+                <th>初设资金</th>
+                <th>备注</th>
+                <th>合同名称</th>
+                <th>资金渠道</th>
+                <th>合同值</th>
+                <th>已支付</th>
+                <th>已允许未支付</th>
+                <th>支付时间</th>
+                <th>结算值</th>
+                <th>乙方单位</th>
+            </tr>
+            {% for i in list%}
+            <tr>
+                <td>{{i[1]}}</td>
+                <td>{{i[2]}}</td>
+                <td>{{i[3]}}</td>
+                <td>{{i[4]}}</td>
+                <td>{{i[6]}}</td>
+                <td>{{i[7]}}</td>
+                <td>{{i[8]}}</td>
+                <td>{{i[9]}}</td>
+                <td>{{i[10]}}</td>
+                <td>{{i[11]}}</td>
+                <td>{{i[12]}}</td>
+                <td>{{i[13]}}</td>
+                <td>{{i[14]}}</td>
+                <td>
+                <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal-edit-{{i[0]}}" data-close-others="true">编辑</button>
+                    <div class="modal fade" id="myModal-edit-{{i[0]}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <form class="form-horizontal" method="post" action="/edit_project/{{i[0]}}/" id="userForm-edit">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h4 class="modal-title" id="myModalLabel-edit">
+                                            编辑项目
+                                        </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label for="projects_edit" class="col-sm-2 control-label">项目名称</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[1]}}" name="projects_edit" class="form-control" id="projects_edit" placeholder="{{i[1]}}" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="c_project" class="col-sm-2 control-label">立项</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[2]}}" name="c_project" class="form-control" id="c_project" placeholder="{{i[2]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="research" class="col-sm-2 control-label">可研</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[3]}}" name="research" class="form-control" id="research" placeholder="{{i[3]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="start" class="col-sm-2 control-label">初始资金</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[4]}}" name="start" class="form-control" id="start" placeholder="{{i[4]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="comment" class="col-sm-2 control-label">备注</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[5]}}" name="comment" class="form-control" id="comment" placeholder="{{i[5]}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                        <button type="submit" class="btn btn-primary">确定</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {%endfor%}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    <div class="modal fade" id="myModal-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <form class="form-horizontal" method="post" action="/project/" id="userForm">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h4 class="modal-title" id="myModalLabel-add">
+                               新增项目
+                            </h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="pro_name" class="col-sm-2 control-label">项目名称</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="pro_name" class="form-control" id="pro_name" required placeholder="项目名称">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="c_project" class="col-sm-2 control-label">立项</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="c_project" class="form-control" id="qc_project" required placeholder="立项">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="research" class="col-sm-2 control-label">可研</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="research" class="form-control" id="qresearch" required placeholder="可研">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="start" class="col-sm-2 control-label">初设</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="start" class="form-control" id="qstart" required placeholder="初设">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="comment" class="col-sm-2 control-label">备注</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="comment" class="form-control" id="qcomment" required placeholder="备注">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+<!--                        <a href="javascript:void(0);" onclick="sendReq('/project/',{'pro_name':$('#pro_name').val(),'c_project':$('#qc_project').val(),'research':$('#qresearch').val(),'start':$('#qstart').val(),'comment':$('#qcomment').val()},'post')"><button type="button" class="btn btn-primary">确定</button>-->
+<!--                            </a>-->
+                        <a href="/project/" onclick="sendReq('/project/',{'pro_name':$('#pro_name').val(),'c_project':$('#qc_project').val(),'research':$('#qresearch').val(),'start':$('#qstart').val(),'comment':$('#qcomment').val()},'post')"><button type="button" class="btn btn-primary">确定</button>
+                            </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{%endblock%}
+{% block appjs %}
+<script src="/static1/global/scripts/chkbox.js" type="text/javascript"></script>
 {% endblock %}
