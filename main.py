@@ -66,7 +66,8 @@ def project(page=1):
               f"LEFT JOIN capital cp ON cp.id=pp.capital_id " \
               f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
         list = conn.execute(sql).fetchall()
-        return render_template('project.html', list=list)
+        total = len(list)
+        return render_template('project.html', list=list, total=total)
 
 @app.route("/search_project/", methods=['GET', 'POST'])
 def search_project():
@@ -184,7 +185,8 @@ def contract(page=1):
         count = conn.execute(count_sql).fetchall()
         depart_sql = f"SELECT capital_channel,SUM(payment) FROM contract GROUP BY capital_channel"
         depart = conn.execute(depart_sql).fetchall()
-        return render_template('/contract.html', list=list, count=count, depart=depart)
+        total = len(list)
+        return render_template('/contract.html', list=list, count=count, depart=depart, total=total)
     return redirect("/contract/")
 
 
@@ -297,7 +299,8 @@ def capital(page=1):
         count = conn.execute(count_sql).fetchall()
         depart_sql = f"SELECT capital_channel,SUM(allow_money) FROM capital GROUP BY capital_channel"
         depart = conn.execute(depart_sql).fetchall()
-        return render_template('/capital.html', list=list, count=count, depart=depart)
+        total = len(list)
+        return render_template('/capital.html', list=list, count=count, depart=depart, total=total)
     return redirect("/capital/")
 
 
