@@ -57,13 +57,15 @@ def project(page=1):
         sql = f"SELECT p.id, p.pro_name, p.c_project, " \
               f"p.research, p.start, " \
               f"p.create_time, p.comment, " \
-              f"c.name, c.capital_channel, c.contract_values," \
+              f"c.name, lc.name, c.contract_values," \
               f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
               f"c.party_unit FROM " \
               f"project p LEFT JOIN project_contract pc ON " \
               f"pc.project_id=p.id LEFT JOIN contract c ON c.id=pc.contract_id " \
               f"LEFT JOIN project_capital pp ON pp.project_id=p.id " \
               f"LEFT JOIN capital cp ON cp.id=pp.capital_id " \
+              f"LEFT JOIN project_channel tc ON tc.project_id=p.id " \
+              f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
               f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
         list = conn.execute(sql).fetchall()
         total = len(list)
@@ -83,30 +85,36 @@ def search_project():
         sql = f"SELECT p.pro_name, p.c_project, " \
               f"p.research, p.start, " \
               f"p.create_time, p.comment, " \
-              f"c.name, c.capital_channel, c.contract_values," \
+              f"c.name, lc.name, c.contract_values," \
               f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
               f"c.party_unit FROM " \
               f"project p LEFT JOIN project_contract pc ON " \
               f"pc.project_id=p.id LEFT JOIN contract c ON c.id=pc.contract_id " \
               f"LEFT JOIN project_capital pp ON pp.project_id=p.id " \
               f"LEFT JOIN capital cp ON cp.id=pp.capital_id " \
+              f"LEFT JOIN project_channel tc ON tc.project_id=p.id " \
+              f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
               f"WHERE p.pro_name like '%{searchKey}%'" \
               f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
         list = conn.execute(sql).fetchall()
+        total = len(list)
     else:
         sql = f"SELECT p.pro_name, p.c_project, " \
               f"p.research, p.start, " \
               f"p.create_time, p.comment, " \
-              f"c.name, c.capital_channel, c.contract_values," \
+              f"c.name, lc.name, c.contract_values," \
               f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
               f"c.party_unit FROM " \
               f"project p LEFT JOIN project_contract pc ON " \
               f"pc.project_id=p.id LEFT JOIN contract c ON c.id=pc.contract_id " \
               f"LEFT JOIN project_capital pp ON pp.project_id=p.id " \
               f"LEFT JOIN capital cp ON cp.id=pp.capital_id " \
+              f"LEFT JOIN project_channel tc ON tc.project_id=p.id " \
+              f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
               f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
         list = conn.execute(sql).fetchall()
-    return render_template('project.html', list=list)
+        total = len(list)
+    return render_template('project.html', list=list, total=total)
 
 @app.route("/edit_project/<int:id>/", methods=['POST'])
 def edit_project(id):
@@ -143,7 +151,7 @@ def contract(page=1):
     """
     if request.method == 'POST':
         name = request.form.get('name') # 合同名
-        capital_channel = request.form.get('capital_channel') # 资金渠道
+        channel = request.form.get('channel') # 资金渠道
         contract_values = request.form.get('contract_values') # 合同值
         payment = request.form.get('payment') # 已支付
         allow_nopay = request.form.get('allow_nopay') # 已申请未支付
@@ -153,8 +161,8 @@ def contract(page=1):
         pro_name = request.form.get('pro_name') # 项目名称
         try:
             # 插入合同表
-            sql = f"INSERT INTO main.contract ('name', 'capital_channel', 'contract_values', 'payment', 'allow_nopay', 'pay_time', 'final_value', 'party_unit') " \
-                f"VALUES ('{name}', '{capital_channel}', '{contract_values}', '{payment}', '{allow_nopay}', '{pay_time}', '{final_value}', '{party_unit}') returning id"
+            sql = f"INSERT INTO main.contract ('name', 'contract_values', 'payment', 'allow_nopay', 'pay_time', 'final_value', 'party_unit') " \
+                f"VALUES ('{name}', '{contract_values}', '{payment}', '{allow_nopay}', '{pay_time}', '{final_value}', '{party_unit}') returning id"
             contract_id = conn.execute(sql).lastrowid
             conn.commit()
         except Exception as ex:
@@ -170,20 +178,35 @@ def contract(page=1):
             conn.commit()
         except Exception as ex:
             return jsonify({'result': f'插入project_contract表异常{ex}'})
+        try:
+            # 插入contract_channel表
+            sql = f"SELECT id FROM main.channel " \
+                  f"WHERE name='{channel}'"
+            channel_id = conn.execute(sql).fetchone()[0]
+            insert_sql = f"INSERT INTO contract_channel ('channel_id', 'contract_id') " \
+                         f"VALUES ({channel_id}, {contract_id})"
+            conn.execute(insert_sql)
+            conn.commit()
+        except Exception as ex:
+            return jsonify({'result': f'插入contract_channel表异常{ex}'})
     elif request.method == 'GET':
         limit = 10
         offset = 5 * int(page) - 5
-        sql = f"SELECT c.id, p.pro_name, c.name, " \
-              f"c.capital_channel, c.contract_values, " \
+        sql = f"SELECT c.id, p.pro_name, lc.name, c.name, " \
+              f"c.contract_values, " \
               f"c.payment, c.allow_nopay, " \
-              f"c.pay_time, c.final_value, c.party_unit FROM" \
-              f" contract c LEFT JOIN project_contract pc ON " \
+              f"c.pay_time, c.final_value, c.party_unit FROM " \
+              f"contract c LEFT JOIN project_contract pc ON " \
               f"pc.contract_id=c.id LEFT JOIN project p ON p.id=pc.project_id " \
+              f"LEFT JOIN contract_channel tc ON tc.contract_id=c.id " \
+              f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
               f"ORDER BY c.id DESC LIMIT {limit} offset {offset}"
         list = conn.execute(sql).fetchall()
         count_sql = f"SELECT SUM(contract_values) FROM contract"
         count = conn.execute(count_sql).fetchall()
-        depart_sql = f"SELECT capital_channel,SUM(payment) FROM contract GROUP BY capital_channel"
+        depart_sql = f"SELECT lc.name, SUM(c.payment) " \
+              f"FROM contract c LEFT JOIN contract_channel tc ON tc.contract_id=c.id " \
+              f"LEFT JOIN channel lc ON lc.id=tc.channel_id "
         depart = conn.execute(depart_sql).fetchall()
         total = len(list)
         return render_template('/contract.html', list=list, count=count, depart=depart, total=total)
@@ -198,7 +221,6 @@ def edit_contract(id):
     """
     if request.method == 'POST':
         name = request.form.get('name') # 合同名
-        capital_channel = request.form.get('capital_channel') # 资金渠道
         contract_values = request.form.get('contract_values') # 合同值
         payment = request.form.get('payment') # 已支付
         allow_nopay = request.form.get('allow_nopay') # 已申请未支付
@@ -208,7 +230,7 @@ def edit_contract(id):
         try:
             # 修改合同表
             sql = f"UPDATE contract SET " \
-                  f"name='{name}', capital_channel='{capital_channel}'," \
+                  f"name='{name}'," \
                   f"contract_values='{contract_values}', payment='{payment}'," \
                   f"allow_nopay='{allow_nopay}', pay_time='{pay_time}'," \
                   f"final_value='{final_value}', party_unit='{party_unit}' " \
@@ -232,28 +254,35 @@ def search_contract():
     offset = 5 * int(page) - 5
     try:
         if searchKey:
-            sql = f"SELECT c.id, p.pro_name, " \
-                f"c.name, c.capital_channel, c.contract_values," \
+            sql = f"SELECT c.id, p.pro_name, lc.name " \
+                f"c.name, c.contract_values," \
                 f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
                 f"c.party_unit FROM " \
                 f"contract c LEFT JOIN project_contract pc ON " \
                 f"pc.contract_id=c.id LEFT JOIN project p ON p.id=pc.project_id " \
-                f"WHERE c.name like '%{searchKey}%'" \
+                f"LEFT JOIN contract_channel tc ON tc.contract_id=c.id " \
+                f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
+                f"WHERE c.name like '%{searchKey}%' " \
+                f"OR p.pro_name like '%{searchKey}%' " \
+                f"OR lc.name like '%{searchKey}%'" \
                 f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
             list = conn.execute(sql).fetchall()
-            print(list)
+            total = len(list)
         else:
-            sql = f"SELECT c.id, p.pro_name, " \
-                f"c.name, c.capital_channel, c.contract_values," \
+            sql = f"SELECT c.id, p.pro_name, lc.name " \
+                f"c.name, c.contract_values," \
                 f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
                 f"c.party_unit FROM " \
                 f"contract c LEFT JOIN project_contract pc ON " \
                 f"pc.contract_id=c.id LEFT JOIN project p ON p.id=pc.project_id " \
+                f"LEFT JOIN contract_channel tc ON tc.contract_id=c.id " \
+                f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
                 f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
             list = conn.execute(sql).fetchall()
+            total = len(list)
     except Exception as ex:
         return jsonify({'result': f'搜索合同表异常{ex}'})
-    return render_template('contract.html', list=list)
+    return render_template('contract.html', list=list, total=total)
 
 
 @app.route("/capital/<int:page>", methods=['GET','POST'])
@@ -266,12 +295,12 @@ def capital(page=1):
     if request.method == 'POST':
         allow_file = request.form.get('allow_file') # 批复文件
         allow_money = request.form.get('allow_money') # 下达金额
-        capital_channel = request.form.get('capital_channel') # 资金渠道
+        channel = request.form.get('channel') # 资金渠道
         pro_name = request.form.get('pro_name')  # 项目名称
         try:
             # 插入资金表
-            sql = f"INSERT INTO main.capital ('allow_file', 'allow_money', 'capital_channel') " \
-                f"VALUES ('{allow_file}', '{allow_money}', '{capital_channel}') returning id"
+            sql = f"INSERT INTO main.capital ('allow_file', 'allow_money') " \
+                f"VALUES ('{allow_file}', '{allow_money}') returning id"
             capital_id = conn.execute(sql).lastrowid
             conn.commit()
         except Exception as ex:
@@ -286,18 +315,34 @@ def capital(page=1):
             conn.execute(insert_sql)
             conn.commit()
         except Exception as ex:
-            return jsonify({'result': f'插入project_contract表异常{ex}'})
+            return jsonify({'result': f'插入project_capital表异常{ex}'})
+        try:
+            # 插入capital_channel表
+            sql = f"SELECT id FROM main.channel " \
+                  f"WHERE name='{channel}'"
+            channel_id = conn.execute(sql).fetchone()[0]
+            insert_sql = f"INSERT INTO capital_channel ('channel_id', 'capital_id') " \
+                         f"VALUES ({channel_id}, {capital_id})"
+            conn.execute(insert_sql)
+            conn.commit()
+        except Exception as ex:
+            return jsonify({'result': f'插入资金渠道表异常{ex}'})
     elif request.method == 'GET':
         limit = 10
         offset = 5 * int(page) - 5
-        sql = f"SELECT c.id, p.pro_name, c.allow_file, c.allow_money, c.capital_channel FROM" \
-              f" capital c LEFT JOIN project_capital pc ON " \
+        sql = f"SELECT c.id, p.pro_name, " \
+              f"c.allow_file, c.allow_money, lc.channel FROM " \
+              f"capital c LEFT JOIN project_capital pc ON " \
               f"pc.capital_id=c.id LEFT JOIN project p ON p.id=pc.project_id " \
+              f"LEFT JOIN capital_channel cc ON cc.capital_id=c.id " \
+              f"LEFT JOIN channel lc ON lc.id=cc.channel_id " \
               f"ORDER BY c.id DESC LIMIT {limit} offset {offset}"
         list = conn.execute(sql).fetchall()
         count_sql = f"SELECT SUM(allow_money) FROM capital"
         count = conn.execute(count_sql).fetchall()
-        depart_sql = f"SELECT capital_channel,SUM(allow_money) FROM capital GROUP BY capital_channel"
+        depart_sql = f"SELECT lc.channel, SUM(c.allow_money) FROM " \
+              f"capital c LEFT JOIN capital_channel cc ON cc.capital_id=c.id " \
+              f"LEFT JOIN channel lc ON lc.id=cc.channel_id "
         depart = conn.execute(depart_sql).fetchall()
         total = len(list)
         return render_template('/capital.html', list=list, count=count, depart=depart, total=total)
@@ -313,12 +358,10 @@ def edit_capital(id):
     if request.method == 'POST':
         allow_file = request.form.get('allow_file') # 批复文件
         allow_money = request.form.get('allow_money') # 下达金额
-        capital_channel = request.form.get('capital_channel') # 资金渠道
         try:
             # 插入资金表
             sql = f"UPDATE capital SET " \
                   f"allow_file='{allow_file}', allow_money='{allow_money}'," \
-                  f"capital_channel='{capital_channel}'" \
                   f"WHERE id={id}"
             conn.execute(sql)
             conn.commit()
@@ -367,13 +410,13 @@ def upload_contract():
         sh = wb.sheet_by_name('Sheet1')
         for i in range(1, sh.nrows):
             data = sh.row_values(i)
-            name, capital_channel, contract_values, \
+            name, channel, contract_values, \
                 payment, allow_nopay, pay_time, \
                 final_value, party_unit, pro_name = data[0], data[1], \
                 data[2], data[3], data[4], data[5], data[6], data[7], data[8]
             try:
-                sql = f"INSERT INTO main.contract ('name', 'capital_channel', 'contract_values', 'payment', 'allow_nopay', 'pay_time', 'final_value', 'party_unit') " \
-                    f"VALUES ('{name}', '{capital_channel}', '{contract_values}', '{payment}', '{allow_nopay}', '{pay_time}', '{final_value}', '{party_unit}') returning id"
+                sql = f"INSERT INTO main.contract ('name', 'contract_values', 'payment', 'allow_nopay', 'pay_time', 'final_value', 'party_unit') " \
+                    f"VALUES ('{name}', '{contract_values}', '{payment}', '{allow_nopay}', '{pay_time}', '{final_value}', '{party_unit}') returning id"
                 contract_id = conn.execute(sql).lastrowid
                 conn.commit()
             except Exception as ex:
@@ -388,7 +431,17 @@ def upload_contract():
                 conn.commit()
             except Exception as ex:
                 return jsonify({'result': f'批量插入project_contract表异常{ex}'})
-    return redirect("/contract")
+            try:
+                sql = f"SELECT id FROM main.channel " \
+                      f"WHERE name='{channel}'"
+                channel_id = conn.execute(sql).fetchone()[0]
+                insert_sql = f"INSERT INTO contract_channel ('channel_id', 'contract_id') " \
+                             f"VALUES ({channel_id}, {contract_id})"
+                conn.execute(insert_sql)
+                conn.commit()
+            except Exception as ex:
+                return jsonify({'result': f'批量插入contract_channel表异常{ex}'})
+    return redirect("/contract/")
 
 @app.route("/upload_capital/", methods=['POST'])
 def upload_capital():
@@ -409,15 +462,26 @@ def upload_capital():
         for i in range(1, sh.nrows):
             data = sh.row_values(i)
             allow_file, allow_money, \
-                capital_channel, pro_name = data[0], str(data[1]), \
+                channel_name, pro_name = data[0], str(data[1]), \
                 data[2], data[3]
             try:
-                sql = f"INSERT INTO main.capital ('allow_file', 'allow_money', 'capital_channel') " \
-                      f"VALUES ('{allow_file}', '{allow_money}', '{capital_channel}') returning id"
+                sql = f"INSERT INTO main.capital ('allow_file', 'allow_money') " \
+                      f"VALUES ('{allow_file}', '{allow_money}') returning id"
                 capital_id = conn.execute(sql).lastrowid
                 conn.commit()
             except Exception as ex:
                 return jsonify({'result': f'插入资金表异常{ex}'})
+            try:
+                # 插入capital_channel表
+                sql = f"SELECT id FROM main.channel " \
+                      f"WHERE name='{channel_name}'"
+                channel_id = conn.execute(sql).fetchone()[0]
+                insert_sql = f"INSERT INTO capital_channel ('channel_id', 'capital_id') " \
+                             f"VALUES ({channel_id}, {capital_id})"
+                conn.execute(insert_sql)
+                conn.commit()
+            except Exception as ex:
+                return jsonify({'result': f'插入capital_channel表异常{ex}'})
             try:
                 # 插入project_capital表
                 sql = f"SELECT id FROM main.project " \
@@ -428,26 +492,137 @@ def upload_capital():
                 conn.execute(insert_sql)
                 conn.commit()
             except Exception as ex:
-                return jsonify({'result': f'插入project_contract表异常{ex}'})
+                return jsonify({'result': f'插入project_capital表异常{ex}'})
     return redirect("/capital/")
 
-
-@app.route("/capital_channel", methods=['GET', 'POST', 'PUT'])
-def capital_channel():
+@app.route("/channel/<int:page>", methods=['GET','POST'])
+@app.route("/channel/", methods=['GET', 'POST'])
+def channel(page=1):
     """
-    资金渠道, 留出接口, 以后可能用到
+    资金渠道
     :return:
     """
     if request.method == 'POST':
-        name = request.form.get('name') # 渠道名称
-        conn.execute(f"INSERT INTO capital_channel VALUES '{name}'")
-        conn.commit()
-        return jsonify({"name": name})
+        name = request.form.get('name')  # 资金渠道
+        pro_name = request.form.get('pro_name') # 项目名称
+        try:
+            # 插入资金渠道表
+            sql = f"INSERT INTO main.channel ('name') " \
+                f"VALUES ('{name}') returning id"
+            channel_id = conn.execute(sql).lastrowid
+            conn.commit()
+        except Exception as ex:
+            return jsonify({'result': f'插入资金渠道异常{ex}'})
+        try:
+            # 插入project_channel表
+            sql = f"SELECT id FROM main.project " \
+                f"WHERE pro_name='{pro_name}'"
+            project_id = conn.execute(sql).fetchone()[0]
+            insert_sql = f"INSERT INTO project_channel ('project_id', 'channel_id') " \
+                        f"VALUES ({project_id}, {channel_id})"
+            conn.execute(insert_sql)
+            conn.commit()
+        except Exception as ex:
+            return jsonify({'result': f'插入project_channel表异常{ex}'})
     elif request.method == 'GET':
-        result = conn.execute("SELECT * from main.capital_channel").fetchall()
-        return render_template('channel.html', result=result)
-    elif request.method == 'PUT':
-        pass
+        limit = 10
+        offset = 5 * int(page) - 5
+        sql = f"SELECT cc.id, p.pro_name, cc.name FROM " \
+            f"channel cc LEFT JOIN project_channel pc ON " \
+            f"pc.channel_id=cc.id LEFT JOIN project p ON p.id=pc.project_id " \
+            f"ORDER BY cc.id DESC LIMIT {limit} offset {offset}"
+        list = conn.execute(sql).fetchall()
+        total = len(list)
+        return render_template('/channel.html', list=list, total=total)
+    return redirect("/channel/")
+
+@app.route("/edit_channel/<int:id>/", methods=['POST'])
+def edit_channel(id):
+    """
+    编辑资金渠道
+    :return:
+    """
+    if request.method == 'POST':
+        name = request.form.get('name') # 资金渠道名称
+        try:
+            # 插入资金渠道表
+            sql = f"UPDATE channel SET name='{name}' WHERE id={id}"
+            conn.execute(sql)
+            conn.commit()
+        except Exception as ex:
+            return jsonify({'result': f'插入资金渠道表异常{ex}'})
+    return redirect("/channel/")
+
+
+@app.route("/upload_channel/", methods=['POST'])
+def upload_channel():
+    """
+    批量上传渠道
+    :return:
+    """
+    if 'file' not in request.files:
+        return jsonify({'result': 'nofile'})
+    file = request.files.get('file')
+    if file.filename == '':
+        return jsonify({'result': 'nofile'})
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        wb = xlrd.open_workbook(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        sh = wb.sheet_by_name('Sheet1')
+        for i in range(1, sh.nrows):
+            data = sh.row_values(i)
+            pro_name, channel = data[0], data[1]
+            try:
+                sql = f"INSERT INTO main.channel ('name') " \
+                      f"VALUES ('{channel}') returning id"
+                channel_id = conn.execute(sql).lastrowid
+                conn.commit()
+            except Exception as ex:
+                return jsonify({'result': f'插入资金渠道表异常{ex}'})
+            try:
+                # 插入project_channel表
+                sql = f"SELECT id FROM main.project " \
+                      f"WHERE pro_name='{pro_name}'"
+                project_id = conn.execute(sql).fetchone()[0]
+                insert_sql = f"INSERT INTO project_channel ('project_id', 'channel_id') " \
+                             f"VALUES ({project_id}, {channel_id})"
+                conn.execute(insert_sql)
+                conn.commit()
+            except Exception as ex:
+                return jsonify({'result': f'插入project_channel表异常{ex}'})
+    return redirect("/channel/")
+
+@app.route("/search_channel/", methods=['GET', 'POST'])
+def search_channel():
+    """
+    资金渠道搜索
+    :return:
+    """
+    searchKey = request.form.get("searchKey")
+    limit = 10
+    page = 1
+    offset = 5 * int(page) - 5
+    try:
+        if searchKey:
+            sql = f"SELECT cc.id, p.pro_name, cc.name FROM " \
+                f"channel cc LEFT JOIN project_channel pc ON " \
+                f"pc.channel_id=cc.id LEFT JOIN project p ON p.id=pc.project_id " \
+                f"WHERE cc.name like '%{searchKey}%' OR p.pro_name like '%{searchKey}%'" \
+                f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
+            list = conn.execute(sql).fetchall()
+            total = len(list)
+        else:
+            sql = f"SELECT cc.id, p.pro_name, cc.name FROM " \
+                f"channel cc LEFT JOIN project_channel pc ON " \
+                f"pc.channel_id=cc.id LEFT JOIN project p ON p.id=cc.project_id " \
+                f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
+            list = conn.execute(sql).fetchall()
+            total = len(list)
+    except Exception as ex:
+        return jsonify({'result': f'搜索资金渠道表异常{ex}'})
+    return render_template('channel.html', list=list, total=total)
+
 
 if __name__ == '__main__':
     app.run()
