@@ -331,7 +331,7 @@ def capital(page=1):
         limit = 10
         offset = 5 * int(page) - 5
         sql = f"SELECT c.id, p.pro_name, " \
-              f"c.allow_file, c.allow_money, lc.channel FROM " \
+              f"c.allow_file, c.allow_money, lc.name FROM " \
               f"capital c LEFT JOIN project_capital pc ON " \
               f"pc.capital_id=c.id LEFT JOIN project p ON p.id=pc.project_id " \
               f"LEFT JOIN capital_channel cc ON cc.capital_id=c.id " \
@@ -340,7 +340,7 @@ def capital(page=1):
         list = conn.execute(sql).fetchall()
         count_sql = f"SELECT SUM(allow_money) FROM capital"
         count = conn.execute(count_sql).fetchall()
-        depart_sql = f"SELECT lc.channel, SUM(c.allow_money) FROM " \
+        depart_sql = f"SELECT lc.name, SUM(c.allow_money) FROM " \
               f"capital c LEFT JOIN capital_channel cc ON cc.capital_id=c.id " \
               f"LEFT JOIN channel lc ON lc.id=cc.channel_id "
         depart = conn.execute(depart_sql).fetchall()
@@ -377,18 +377,25 @@ def pay(id):
     :param id:
     :return:
     """
-    try:
-        sql = f"SELECT c.payment, c.allow_nopay FROM contract c " \
-              f"WHERE c.id={id}"
-        payment, allow_nopay = conn.execute(sql).fetchall()[0]
-        count_value = float(payment) + float(allow_nopay)
-        update_sql = f"UPDATE contract SET " \
-                     f"allow_nopay=0, payment={count_value} " \
-                     f"WHERE contract.id={id}"
-        conn.execute(update_sql)
-        conn.commit()
-    except Exception as ex:
-        return jsonify({'result': f'点击从已申请未支付到已支付异常{ex}'})
+    allow = request.form.get('allow')
+    if allow:
+        try:
+            sql = f"SELECT c.payment, c.allow_nopay FROM contract c " \
+                f"WHERE c.id={id}"
+            payment, allow_nopay = conn.execute(sql).fetchall()[0]
+            if float(allow) > float(allow_nopay):
+                return jsonify({'result': f'必须小于{allow_nopay}'})
+            allow_no = float(allow_nopay) - float(allow) # 要更改的值
+            count_value = float(payment) + float(allow)
+            update_sql = f"UPDATE contract SET " \
+                        f"allow_nopay={allow_no}, payment={count_value} " \
+                        f"WHERE contract.id={id}"
+            conn.execute(update_sql)
+            conn.commit()
+        except Exception as ex:
+            return jsonify({'result': f'点击从已申请未支付到已支付异常{ex}'})
+    else:
+        return jsonify({'result': f'必须输入金额'})
     return redirect("/contract/")
 
 
