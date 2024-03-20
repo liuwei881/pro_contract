@@ -4,6 +4,8 @@ import sqlite3
 import datetime
 import xlrd
 import os
+from datetime import datetime
+from xlrd import xldate_as_tuple
 from flask import Flask
 from flask import request, jsonify, render_template, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -45,7 +47,7 @@ def project(page=1):
         try:
             # 插入项目表
             sql = f"INSERT INTO main.project ('pro_name', 'c_project', 'research', 'start', 'comment', 'create_time') " \
-                f"VALUES ('{pro_name}', '{c_project}', '{research}', '{start}', '{comment}', '{create_time}')"
+                  f"VALUES ('{pro_name}', '{c_project}', '{research}', '{start}', '{comment}', '{create_time}')"
             conn.execute(sql)
             conn.commit()
         except Exception as ex:
@@ -82,10 +84,9 @@ def search_project():
     page = 1
     offset = 5 * int(page) - 5
     if searchKey:
-        sql = f"SELECT p.pro_name, p.c_project, " \
-              f"p.research, p.start, " \
-              f"p.create_time, p.comment, " \
-              f"c.name, lc.name, c.contract_values," \
+        sql = f"SELECT p.id, p.pro_name, p.c_project, " \
+              f"p.research, p.start, p.create_time, p.comment, " \
+              f"c.name, lc.name as channel, c.contract_values," \
               f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
               f"c.party_unit FROM " \
               f"project p LEFT JOIN project_contract pc ON " \
@@ -100,9 +101,8 @@ def search_project():
         total = len(list)
     else:
         sql = f"SELECT p.pro_name, p.c_project, " \
-              f"p.research, p.start, " \
-              f"p.create_time, p.comment, " \
-              f"c.name, lc.name, c.contract_values," \
+              f"p.research, p.start, p.create_time, " \
+              f"p.comment, c.name, lc.name as channel, c.contract_values," \
               f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
               f"c.party_unit FROM " \
               f"project p LEFT JOIN project_contract pc ON " \
@@ -192,7 +192,7 @@ def contract(page=1):
     elif request.method == 'GET':
         limit = 10
         offset = 5 * int(page) - 5
-        sql = f"SELECT c.id, p.pro_name, lc.name, c.name, " \
+        sql = f"SELECT c.id, p.pro_name, lc.name as channel, c.name, " \
               f"c.contract_values, " \
               f"c.payment, c.allow_nopay, " \
               f"c.pay_time, c.final_value, c.party_unit FROM " \
@@ -206,7 +206,8 @@ def contract(page=1):
         count = conn.execute(count_sql).fetchall()
         depart_sql = f"SELECT lc.name, SUM(c.payment) " \
               f"FROM contract c LEFT JOIN contract_channel tc ON tc.contract_id=c.id " \
-              f"LEFT JOIN channel lc ON lc.id=tc.channel_id "
+              f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
+              f"Group by lc.name "
         depart = conn.execute(depart_sql).fetchall()
         total = len(list)
         return render_template('/contract.html', list=list, count=count, depart=depart, total=total)
@@ -252,11 +253,18 @@ def search_contract():
     limit = 10
     page = 1
     offset = 5 * int(page) - 5
+    count_sql = f"SELECT SUM(contract_values) FROM contract"
+    count = conn.execute(count_sql).fetchall()
+    depart_sql = f"SELECT lc.name, SUM(c.payment) " \
+                 f"FROM contract c LEFT JOIN contract_channel tc ON tc.contract_id=c.id " \
+                 f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
+                 f"Group by lc.name "
+    depart = conn.execute(depart_sql).fetchall()
     try:
         if searchKey:
-            sql = f"SELECT c.id, p.pro_name, lc.name " \
-                f"c.name, c.contract_values," \
-                f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
+            sql = f"SELECT c.id, p.pro_name, lc.name as channel, " \
+                f"c.name, c.contract_values, " \
+                f"c.payment, c.allow_nopay, c.pay_time, c.final_value, " \
                 f"c.party_unit FROM " \
                 f"contract c LEFT JOIN project_contract pc ON " \
                 f"pc.contract_id=c.id LEFT JOIN project p ON p.id=pc.project_id " \
@@ -264,12 +272,12 @@ def search_contract():
                 f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
                 f"WHERE c.name like '%{searchKey}%' " \
                 f"OR p.pro_name like '%{searchKey}%' " \
-                f"OR lc.name like '%{searchKey}%'" \
+                f"OR lc.name like '%{searchKey}%' " \
                 f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
             list = conn.execute(sql).fetchall()
             total = len(list)
         else:
-            sql = f"SELECT c.id, p.pro_name, lc.name " \
+            sql = f"SELECT c.id, p.pro_name, lc.name as channel " \
                 f"c.name, c.contract_values," \
                 f"c.payment, c.allow_nopay, c.pay_time, c.final_value," \
                 f"c.party_unit FROM " \
@@ -282,11 +290,11 @@ def search_contract():
             total = len(list)
     except Exception as ex:
         return jsonify({'result': f'搜索合同表异常{ex}'})
-    return render_template('contract.html', list=list, total=total)
+    return render_template('contract.html', list=list, total=total, count=count, depart=depart)
 
 
 @app.route("/capital/<int:page>", methods=['GET','POST'])
-@app.route("/capital/", methods=['GET'])
+@app.route("/capital/", methods=['GET', 'POST'])
 def capital(page=1):
     """
     资金下达
@@ -342,7 +350,8 @@ def capital(page=1):
         count = conn.execute(count_sql).fetchall()
         depart_sql = f"SELECT lc.name, SUM(c.allow_money) FROM " \
               f"capital c LEFT JOIN capital_channel cc ON cc.capital_id=c.id " \
-              f"LEFT JOIN channel lc ON lc.id=cc.channel_id "
+              f"LEFT JOIN channel lc ON lc.id=cc.channel_id " \
+              f"GROUP BY lc.name"
         depart = conn.execute(depart_sql).fetchall()
         total = len(list)
         return render_template('/capital.html', list=list, count=count, depart=depart, total=total)
@@ -361,7 +370,7 @@ def edit_capital(id):
         try:
             # 插入资金表
             sql = f"UPDATE capital SET " \
-                  f"allow_file='{allow_file}', allow_money='{allow_money}'," \
+                  f"allow_file='{allow_file}', allow_money='{allow_money}' " \
                   f"WHERE id={id}"
             conn.execute(sql)
             conn.commit()
@@ -420,7 +429,7 @@ def upload_contract():
             name, channel, contract_values, \
                 payment, allow_nopay, pay_time, \
                 final_value, party_unit, pro_name = data[0], data[1], \
-                data[2], data[3], data[4], data[5], data[6], data[7], data[8]
+                data[2], data[3], data[4], datetime(*xldate_as_tuple(data[5], 0)).date(), data[6], data[7], data[8]
             try:
                 sql = f"INSERT INTO main.contract ('name', 'contract_values', 'payment', 'allow_nopay', 'pay_time', 'final_value', 'party_unit') " \
                     f"VALUES ('{name}', '{contract_values}', '{payment}', '{allow_nopay}', '{pay_time}', '{final_value}', '{party_unit}') returning id"
