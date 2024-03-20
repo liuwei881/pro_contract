@@ -95,7 +95,7 @@ def search_project():
               f"LEFT JOIN capital cp ON cp.id=pp.capital_id " \
               f"LEFT JOIN project_channel tc ON tc.project_id=p.id " \
               f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
-              f"WHERE p.pro_name like '%{searchKey}%'" \
+              f"WHERE p.pro_name='{searchKey}' " \
               f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
         list = conn.execute(sql).fetchall()
         total = len(list)
@@ -270,9 +270,9 @@ def search_contract():
                 f"pc.contract_id=c.id LEFT JOIN project p ON p.id=pc.project_id " \
                 f"LEFT JOIN contract_channel tc ON tc.contract_id=c.id " \
                 f"LEFT JOIN channel lc ON lc.id=tc.channel_id " \
-                f"WHERE c.name like '%{searchKey}%' " \
-                f"OR p.pro_name like '%{searchKey}%' " \
-                f"OR lc.name like '%{searchKey}%' " \
+                f"WHERE c.name='{searchKey}' " \
+                f"OR p.pro_name='{searchKey}' " \
+                f"OR lc.name='{searchKey}' " \
                 f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
             list = conn.execute(sql).fetchall()
             total = len(list)
@@ -624,7 +624,7 @@ def search_channel():
             sql = f"SELECT cc.id, p.pro_name, cc.name FROM " \
                 f"channel cc LEFT JOIN project_channel pc ON " \
                 f"pc.channel_id=cc.id LEFT JOIN project p ON p.id=pc.project_id " \
-                f"WHERE cc.name like '%{searchKey}%' OR p.pro_name like '%{searchKey}%'" \
+                f"WHERE cc.name='{searchKey}' OR p.pro_name='{searchKey}' " \
                 f"ORDER BY p.id DESC LIMIT {limit} offset {offset}"
             list = conn.execute(sql).fetchall()
             total = len(list)
