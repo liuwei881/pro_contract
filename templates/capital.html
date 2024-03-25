@@ -7,6 +7,14 @@
         </div>
         <div class="">
             <div>
+                <form action="/search_capital/" method="POST" class="navbar-form navbar-left" role="search">
+                <div class="form-group">
+                    <div class="col-sm-2">
+                        <input type="text" name="searchKey" class="form-control" id="searchKey" placeholder="项目名称">
+                    </div>
+                </div>
+                    <button type="submit" class="btn red-haze btn-sm">搜索</button>
+            </form>
         </div>
         </div>
         <div class="tools">
@@ -23,6 +31,7 @@
                 <th>项目名称</th>
                 <th>批复文件</th>
                 <th>下达金额</th>
+                <th>已支付金额</th>
                 <th>资金渠道</th>
             </tr>
             {% for i in list%}
@@ -31,6 +40,7 @@
                 <td>{{i[2]}}</td>
                 <td>{{i[3]}}</td>
                 <td>{{i[4]}}</td>
+                <td>{{i[5]}}</td>
                 <td>
                 <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal-edit-{{i[0]}}" data-close-others="true">编辑</button>
                     <div class="modal fade" id="myModal-edit-{{i[0]}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -54,6 +64,12 @@
                                             <label for="allow_money" class="col-sm-2 control-label">下达金额</label>
                                             <div class="col-sm-10">
                                                 <input type="text" value="{{i[3]}}" name="allow_money" class="form-control" id="allow_money" placeholder="{{i[3]}}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="used_money" class="col-sm-2 control-label">已支付金额</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" value="{{i[4]}}" name="used_money" class="form-control" id="used_money" placeholder="{{i[4]}}">
                                             </div>
                                         </div>
                                     </div>
@@ -97,6 +113,12 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="used_money" class="col-sm-2 control-label">已支付金额</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="used_money" class="form-control" id="used_money" placeholder="已支付金额">
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="channel" class="col-sm-2 control-label">资金渠道</label>
                             <div class="col-sm-10">
                                 <input type="text" name="channel" class="form-control" id="channel" placeholder="资金渠道">
@@ -116,6 +138,7 @@
                         <a href="/capital/" onclick="sendReq(
                             '/capital/',{'allow_file':$('#allow_file').val(),
                             'allow_money':$('#allow_money').val(),
+                            'used_money':$('#used_money').val(),
                             'channel':$('#channel').val(),
                             'pro_name':$('#pro_name').val()},'post')"><button type="button" class="btn btn-primary">确定</button>
                             </a>
@@ -167,16 +190,24 @@
             <div class="caption">
             <i class="fa fa-cogs"></i>其中
         </div>
+            {% for i in depart%}
             <tr>
-                {% for i in depart%}
-                <th>{{i[0]}}</th>
-                {%endfor%}
+                <th>项目: {{i[0]}}</th>
+                <td>渠道: {{i[1]}}</td>
+                <td>下达金额: {{i[2]}}</td>
+                <td>已支付金额: {{i[3]}}</td>
             </tr>
-            <tr>
-                {% for i in depart%}
-                <td>{{i[1]}}</td>
-                {%endfor%}
-            </tr>
+            {%endfor%}
+<!--            <tr>-->
+<!--                {% for i in depart%}-->
+<!--                <td>下达金额: {{i[1]}}</td>-->
+<!--                {%endfor%}-->
+<!--            </tr>-->
+<!--            <tr>-->
+<!--                {% for i in depart%}-->
+<!--                <td>已支付金额: {{i[2]}}</td>-->
+<!--                {%endfor%}-->
+<!--            </tr>-->
             </tbody>
         </table>
     </div>

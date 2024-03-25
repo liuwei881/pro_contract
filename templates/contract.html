@@ -1,5 +1,6 @@
 {% extends "main.html" %}
 {% block content %}
+
 <div class="portlet box blue">
     <div class="portlet-title">
         <div class="caption">
@@ -23,7 +24,11 @@
         <div class="tools">
         <button type="button" class="btn red-haze btn-sm dropdown-toggle" data-toggle="modal" data-target="#myModal-add" data-close-others="true" >新建合同</button>
         </div>
+        <div class="tools">
+        <button type="button" class="btn red-haze btn-sm dropdown-toggle" data-toggle="modal" data-target="#myModal-export" data-close-others="true" >导出excel</button>
+        </div>
     </div>
+
 	<div class="portlet-body">
         <table class="table table-bordered">
             <tbody>
@@ -88,7 +93,7 @@
                                         <div class="form-group">
                                             <label for="name" class="col-sm-2 control-label">合同名称</label>
                                             <div class="col-sm-10">
-                                                <input type="text" value="{{i[2]}}" name="name" class="form-control" id="name" placeholder="{{i[2]}}">
+                                                <input type="text" value="{{i[3]}}" name="name" class="form-control" id="name" placeholder="{{i[3]}}">
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -143,6 +148,9 @@
         </table>
     </div>
 </div>
+
+
+
     <div class="modal fade" id="myModal-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <form class="form-horizontal" method="post" action="/contract/" id="userForm">
             <div class="modal-dialog">
@@ -251,6 +259,98 @@
         </form>
     </div>
 
+    <div class="modal fade" id="myModal-export" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <form class="form-horizontal" method="post" action="/download/" id="userFormexport">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h4 class="modal-title" id="myModalLabel-export">
+                               导出excel
+                            </h4>
+                    </div>
+                    <form method="post" action="/download/">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="项目名称" checked>
+                            <label class="form-check-label">项目名称</label>
+                        </div>
+
+                        <div class="form-check">
+                            {%for i in pro_list%}
+                            <input type="checkbox" class="form-check-input" name="project_items" value="{{i[0]}}">
+                            <label class="form-check-label">{{i[0]}}</label>
+                            {%endfor%}
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="立项">
+                            <label class="form-check-label">立项</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="可研">
+                            <label class="form-check-label">可研</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="初设">
+                            <label class="form-check-label">初设</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="备注">
+                            <label class="form-check-label">备注</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="合同名称" checked>
+                            <label class="form-check-label">合同名称</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="资金渠道" checked>
+                            <label class="form-check-label">资金渠道</label>
+                        </div>
+                        <div class="form-check">
+                            {%for i in channel_list%}
+                            <input type="checkbox" class="form-check-input" name="channel_items" value="{{i[0]}}">
+                            <label class="form-check-label">{{i[0]}}</label>
+                            {%endfor%}
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="合同值">
+                            <label class="form-check-label">合同值</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="已支付">
+                            <label class="form-check-label">已支付</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="已申请未支付">
+                            <label class="form-check-label">已申请未支付</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="结算值">
+                            <label class="form-check-label">结算值</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="乙方单位">
+                            <label class="form-check-label">乙方单位</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="批复文件">
+                            <label class="form-check-label">批复文件</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="items" value="下达金额">
+                            <label class="form-check-label">下达金额</label>
+                        </div>
+                    </form>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <div class="portlet-body">
         <table class="table table-bordered">
             <tbody>
@@ -274,12 +374,17 @@
         </div>
             <tr>
                 {% for i in depart%}
-                <th>{{i[0]}}</th>
+                <th>渠道:{{i[0]}}</th>
                 {%endfor%}
             </tr>
             <tr>
                 {% for i in depart%}
-                <td>{{i[1]}}</td>
+                <td>已支付: {{i[1]}}</td>
+                {%endfor%}
+            </tr>
+            <tr>
+                {% for i in depart%}
+                <td>已申请未支付: {{i[2]}}</td>
                 {%endfor%}
             </tr>
             </tbody>
