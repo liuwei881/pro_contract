@@ -403,7 +403,6 @@ def search_capital():
               f"LEFT JOIN capital_channel cc ON cc.capital_id=c.id " \
               f"LEFT JOIN channel lc ON lc.id=cc.channel_id " \
               f"WHERE p.pro_name='{searchKey}' " \
-              f"GROUP BY p.pro_name, lc.name " \
               f"ORDER BY c.id DESC LIMIT {limit} offset {offset}"
             list = conn.execute(sql).fetchall()
             total = len(list)
